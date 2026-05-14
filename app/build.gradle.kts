@@ -49,7 +49,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
     implementation("androidx.activity:activity-compose:1.10.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-
+    //GPS
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     // ExoPlayer Media3 (audio player)
     implementation("androidx.media3:media3-exoplayer:1.4.1")
     implementation("androidx.media3:media3-exoplayer-hls:1.4.1")

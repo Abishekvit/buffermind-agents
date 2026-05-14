@@ -80,7 +80,9 @@ class SignalStrengthDetector(
                 0, 1 -> SignalLevel.Weak
                 2 -> SignalLevel.Fair
                 3, 4 -> SignalLevel.Strong
+                else -> SignalLevel.Unknown
             }
+
         }
         return SignalLevel.Unknown
     }

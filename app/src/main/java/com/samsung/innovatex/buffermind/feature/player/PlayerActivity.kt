@@ -2,41 +2,44 @@
 
 package com.samsung.innovatex.buffermind.feature.player
 
-import android.hardware.Sensor
+import android.content.Context
 import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.media3.common.Player
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerView
 import com.samsung.innovatex.buffermind.R
-import com.samsung.innovatex.buffermind.domain.BufferContext
-import com.samsung.innovatex.buffermind.domain.BufferTriggerManager
-import com.samsung.innovatex.buffermind.domain.BufferTriggerListener
-import com.samsung.innovatex.buffermind.domain.ContextManager
-import com.samsung.innovatex.buffermind.sensors.SensorManagerWrapper
-import com.samsung.innovatex.buffermind.sensors.WalkingDetector
-import com.samsung.innovatex.buffermind.sensors.SignalStrengthDetector
+import com.samsung.innovatex.buffermind.data.FakeBufferCache
+import com.samsung.innovatex.buffermind.domain.*
+import com.samsung.innovatex.buffermind.sensors.*
 import com.samsung.innovatex.buffermind.util.Logger
 
-class PlayerActivity :
-    AppCompatActivity(),
-    SensorEventListener,
-    BufferTriggerListener {
+class PlayerActivity : AppCompatActivity(), PredictionListener {
 
     private lateinit var playerView: PlayerView
     private lateinit var tvStatus: TextView
     private lateinit var tvSensorStatus: TextView
-    private var player: ExoPlayer? = null
 
-    private lateinit var sensorManager: SensorManagerWrapper
+    private var player: ExoPlayer? = null
+    private lateinit var mediaSession: MediaSession
+
+    // Day 3 sensors + managers
+    private lateinit var gpsDetector: GpsDetector
+    private lateinit var wifiSignalDetector: WifiSignalDetector
+    private lateinit var sensorFusionManager: SensorFusionManager
+    private lateinit var predictiveEngine: PredictiveContextEngine
+    private lateinit var fakeCache: FakeBufferCache
+    private lateinit var mediaSessionTracker: MediaSessionTracker
     private val walkingDetector = WalkingDetector()
-    private lateinit var signalStrengthDetector: SignalStrengthDetector
-    private lateinit var contextManager: ContextManager
-    private val bufferTriggerManager = BufferTriggerManager(this)
+
+    private var isAirplaneMode = false
+    private var gpsMoving = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,100 +49,105 @@ class PlayerActivity :
         tvStatus = findViewById(R.id.tvStatus)
         tvSensorStatus = findViewById(R.id.tvSensorStatus)
 
-        sensorManager = SensorManagerWrapper(this)
-        signalStrengthDetector = SignalStrengthDetector(this) { }
-        contextManager = ContextManager(walkingDetector, signalStrengthDetector)
-
-        setupPlayer()
-        setupSensorListeners()
+        setupPlayerAndSession()
+        setupSensors()
+        fakeCache = FakeBufferCache()
     }
 
-    private fun setupPlayer() {
-        val streamUrl = "https://example.com/audio/stream.m3u8" // replace
+    private fun setupPlayerAndSession() {
+        val streamUrl = "https://ice.somafm.com/groovesalad-128-mp3" // WORKING TEST URL
         val mediaItem = MediaItem.fromUri(streamUrl)
 
         val p = ExoPlayer.Builder(this).build()
         player = p
+        mediaSession = MediaSession.Builder(this, p).build()
 
         playerView.player = p
+        mediaSessionTracker = MediaSessionTracker(mediaSession)
 
         p.addListener(object : Player.Listener {
-            override fun onPlaybackStateChanged(state: Int) {
-                val playerState = when (state) {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                val playerState = when (playbackState) {
+                    Player.STATE_READY -> if (p.isPlaying) PlayerState.Playing else PlayerState.Paused
                     Player.STATE_BUFFERING -> PlayerState.Loading
-                    Player.STATE_READY -> {
-                        if (p.isPlaying) PlayerState.Playing else PlayerState.Paused
-                    }
-                    Player.STATE_ENDED -> PlayerState.Idle
                     else -> PlayerState.Idle
                 }
-                contextManager.updatePlaybackState(playerState)
-                updateUiStatus(playerState)
-            }
-
-            override fun onPlayerError(error: androidx.media3.common.PlaybackException){
-                Logger.e("Player", "Error: ${error.message}")
-                updateUiStatus(PlayerState.Error)
+                updateStatus(playerState)
+                processAllSensors() // Trigger sensor processing
             }
         })
 
         p.setMediaItem(mediaItem)
         p.prepare()
         p.play()
-
-        contextManager.updatePlaybackState(PlayerState.Playing)
     }
 
-    private fun setupSensorListeners() {
-        sensorManager = SensorManagerWrapper(this)
-        signalStrengthDetector.startListening()
+    private fun setupSensors() {
+        gpsDetector = GpsDetector(this) { moving ->
+            gpsMoving = moving
+            processAllSensors()
+        }
+        wifiSignalDetector = WifiSignalDetector(this) { signal ->
+            processAllSensors()
+        }
+        sensorFusionManager = SensorFusionManager()
+        predictiveEngine = PredictiveContextEngine(sensorFusionManager, this)
+
+        gpsDetector.startListening()
+        wifiSignalDetector.startMonitoring()
     }
 
-    private fun onSensorChanged(event: SensorEvent, type: Int?) {
-        when (type) {
-            Sensor.TYPE_ACCELEROMETER -> {
-                val context = contextManager.updateWalking(event)
-                bufferTriggerManager.considerBuffer(context)
-                updateSensorStatus(context)
-            }
+    private fun processAllSensors() {
+        val accelWalking = walkingDetector.isWalking()
+        val gpsMovement = gpsMoving
+        val signal = wifiSignalDetector.getCurrentSignal()
+        val playback = mediaSessionTracker.trackPlayback()
+
+        val fusedContext = sensorFusionManager.fuseContext(
+            gpsMovement, accelWalking, signal, playback
+        )
+        predictiveEngine.processContext(fusedContext)
+        updateContextUI(fusedContext)
+    }
+
+    override fun onBufferPredicted(risk: Float) {
+        runOnUiThread {
+            fakeCache.preloadSegment("current_track", 30)
+            tvStatus.text = "BUFFERING 30 MIN AHEAD (risk: ${String.format("%.1f", risk)})"
+            Toast.makeText(this, "AI PREDICTED DISCONNECT - BUFFERING", Toast.LENGTH_LONG).show()
         }
     }
 
-    private fun updateSensorStatus(context: BufferContext) {
-        val walkingText = if (context.isWalking) "WALKING" else "STILL"
-        val signalText = "Signal: ${context.signalLevel}"
-        tvSensorStatus.text = "Status: $walkingText, $signalText"
+    override fun onBufferStarted() {
+        tvStatus.text = "BUFFERING ACTIVE - 30min cached"
     }
 
-    private fun updateUiStatus(state: PlayerState) {
-        tvStatus.text = "Status: $state"
+    override fun onSeamlessPlayback() {
+        tvStatus.text = "SEAMLESS PLAYBACK ACTIVE (offline)"
     }
 
-    override fun onSensorChanged(event: SensorEvent) {
-        onSensorChanged(event, event.sensor.type)
+    private fun updateStatus(state: PlayerState) {
+        tvStatus.text = "Player: $state"
     }
 
-    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
-
-    override fun onResume() {
-        super.onResume()
-        sensorManager.startListening()
+    private fun updateContextUI(context: FusedContext) {
+        tvSensorStatus.text = "Moving: ${context.isMoving}, Signal: ${context.signalQuality}, Risk: ${String.format("%.2f", context.riskScore)}"
     }
 
-    override fun onPause() {
-        super.onPause()
-        sensorManager.stopListening()
+    // Simulate airplane mode disconnect (call from button or debug)
+    fun simulateAirplaneMode() {
+        isAirplaneMode = true
+        if (fakeCache.hasBuffer("current_track")) {
+            onSeamlessPlayback()
+        } else {
+            tvStatus.text = "DISCONNECT - No buffer available"
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        signalStrengthDetector.stopListening()
+        gpsDetector.stopListening()
         player?.release()
-        player = null
-    }
-
-    override fun onPredictiveBufferNeeded() {
-        Logger.d("BufferTrigger", "ON BUFFERING AHEAD (FAKE)")
-        tvStatus.append(" - BUFFERING AHEAD (FAKE)")
+        mediaSession.release()
     }
 }
