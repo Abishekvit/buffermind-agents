@@ -20,6 +20,11 @@ import com.samsung.innovatex.buffermind.domain.*
 import com.samsung.innovatex.buffermind.sensors.*
 import com.samsung.innovatex.buffermind.util.Logger
 
+data class PredictionResult(
+    val confidence: Float,
+    val disconnectProbability: Float
+)
+
 class PlayerActivity : AppCompatActivity(), PredictionListener {
 
     private lateinit var playerView: PlayerView
@@ -53,7 +58,6 @@ class PlayerActivity : AppCompatActivity(), PredictionListener {
         setupSensors()
         fakeCache = FakeBufferCache()
     }
-
     private fun setupPlayerAndSession() {
         val streamUrl = "https://ice.somafm.com/groovesalad-128-mp3" // WORKING TEST URL
         val mediaItem = MediaItem.fromUri(streamUrl)

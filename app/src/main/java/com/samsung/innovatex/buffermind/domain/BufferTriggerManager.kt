@@ -7,7 +7,7 @@ import com.samsung.innovatex.buffermind.feature.player.PlayerState
 import com.samsung.innovatex.buffermind.util.Logger
 
 interface BufferTriggerListener {
-    fun onPredictiveBufferNeeded()
+    fun onPredictiveBufferNeeded(result: PredictionResult)
 }
 
 class BufferTriggerManager(
@@ -31,5 +31,18 @@ class BufferTriggerManager(
         }
 
         lastWasTriggered = shouldTrigger
+    }
+    private val fakePredictor = FakeLstmPredictor()
+
+    fun considerBuffer(context: BufferContext, isPlayingRepeated: Boolean) {
+        val result = fakePredictor.predict(
+            context = context,
+            isPlayingRepeated = isPlayingRepeated,
+            playbackDurationMinutes = 5.0f  // or current / computed
+        )
+
+        if (result.shouldBuffer) {
+            listener.onPredictiveBufferNeeded(result)
+        }
     }
 }
