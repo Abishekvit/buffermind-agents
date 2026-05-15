@@ -14,7 +14,7 @@ interface PredictionListener {
 
 class PredictiveContextEngine(
     private val sensorFusion: SensorFusionManager,
-    private val listener: PredictionListener
+    private val listener: BufferTriggerListener
 ) {
 
     fun processContext(fusedContext: FusedContext) {

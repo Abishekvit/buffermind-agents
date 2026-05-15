@@ -1,48 +1,44 @@
-// File: app/src/main/java/com/samsung/innovatex/buffermind/domain/BufferTriggerManager.kt
-
 package com.samsung.innovatex.buffermind.domain
 
 import com.samsung.innovatex.buffermind.sensors.SignalLevel
-import com.samsung.innovatex.buffermind.feature.player.PlayerState
-import com.samsung.innovatex.buffermind.util.Logger
 
 interface BufferTriggerListener {
-    fun onPredictiveBufferNeeded(result: PredictionResult)
+
+    fun onBufferPredicted(risk: Float)
+
+    fun onBufferStarted()
+
+    fun onSeamlessPlayback()
 }
 
 class BufferTriggerManager(
     private val listener: BufferTriggerListener,
 ) {
 
-    private var lastWasTriggered = false
+    fun considerBuffer(
+        context: BufferContext,
+        isPlayingRepeated: Boolean,
+    ) {
 
-    fun considerBuffer(context: BufferContext) {
-        val shouldTrigger =
-            context.isWalking &&
-                    (context.signalLevel == SignalLevel.Weak ||
-                            context.signalLevel == SignalLevel.Unknown) &&
-                    context.playbackState == PlayerState.Playing
+        var risk = 0f
 
-        if (shouldTrigger && !lastWasTriggered) {
-            Logger.d("BufferTrigger", "Predictive buffer triggered: ${context.signalLevel}")
-            listener.onPredictiveBufferNeeded()
-        } else if (!shouldTrigger && lastWasTriggered) {
-            Logger.d("BufferTrigger", "Buffer context no longer active")
+        if (context.isWalking) {
+            risk += 0.4f
         }
 
-        lastWasTriggered = shouldTrigger
-    }
-    private val fakePredictor = FakeLstmPredictor()
+        if (context.signalLevel == SignalLevel.Weak) {
+            risk += 0.4f
+        }
 
-    fun considerBuffer(context: BufferContext, isPlayingRepeated: Boolean) {
-        val result = fakePredictor.predict(
-            context = context,
-            isPlayingRepeated = isPlayingRepeated,
-            playbackDurationMinutes = 5.0f  // or current / computed
-        )
+        if (isPlayingRepeated) {
+            risk += 0.2f
+        }
 
-        if (result.shouldBuffer) {
-            listener.onPredictiveBufferNeeded(result)
+        if (risk >= 0.7f) {
+
+            listener.onBufferPredicted(risk)
+
+            listener.onBufferStarted()
         }
     }
 }

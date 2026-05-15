@@ -9,8 +9,18 @@
         android:id="@+id/tvStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Player Status" />
+        android:text="Player Status"
 
+        />
+    <TextView
+        android:id="@+id/tv_cache_stats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Cache: 0 tracks, Hit rate: 0%"
+        android:textSize="12sp"
+        android:textColor="@color/black"
+        />
     <TextView
         android:id="@+id/tvSensorStatus"
         android:layout_width="match_parent"

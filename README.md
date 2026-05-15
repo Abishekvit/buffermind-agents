@@ -210,7 +210,23 @@ Walking detected
 → Playback continuity maintained
 
 ---
+## Day 4: Adaptive Memory Layer
 
+BufferMind now includes an **on‑device adaptive memory layer**:
+
+- Buffered tracks are stored in **RoomDB** using `BufferedTrackEntity`.
+- **LRU‑style eviction policy** removes oldest unused tracks when cache size exceeds limits.
+- **Cache analytics** track:
+    - hit/miss rate,
+    - total buffered tracks,
+    - approximate buffer memory usage.
+- UI displays:
+    - “Cache: X tracks, Hit rate: Y%”
+    - “Buffer mem: ~Z MB”
+- Predictive buffering events (from the fake LSTM) insert tracks into the cache.
+- Playback‑aware hooks (`markTrackUsed`) simulate real cache usage patterns.
+
+This forms the **core of a context‑aware, adaptive memory system**: decisions propagate from sensors → AI prediction → adaptive caching → seamless playback even during network drops.
 ## Simulated AI Prediction Flow
 
 ### Fake LSTM Logic
