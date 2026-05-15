@@ -1,7 +1,11 @@
 package com.samsung.innovatex.buffermind.domain
 
 import com.samsung.innovatex.buffermind.sensors.SignalLevel
-
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import com.samsung.innovatex.buffermind.network.PredictionRequest
+import com.samsung.innovatex.buffermind.network.RetrofitClient
 interface BufferTriggerListener {
 
     fun onBufferPredicted(risk: Float)
@@ -19,26 +23,35 @@ class BufferTriggerManager(
         context: BufferContext,
         isPlayingRepeated: Boolean,
     ) {
+        CoroutineScope(Dispatchers.IO).launch {
 
-        var risk = 0f
+            try {
 
-        if (context.isWalking) {
-            risk += 0.4f
-        }
+                val request = PredictionRequest(
+                    walking = context.isWalking,
+                    weak_signal =
+                        context.signalLevel == SignalLevel.Weak,
+                    repeated_playback = isPlayingRepeated,
+                    gps_moving = true,
+                    playback_duration_minutes = 15f
+                )
 
-        if (context.signalLevel == SignalLevel.Weak) {
-            risk += 0.4f
-        }
+                val response =
+                    RetrofitClient.api.predict(request)
 
-        if (isPlayingRepeated) {
-            risk += 0.2f
-        }
+                if (response.should_buffer) {
 
-        if (risk >= 0.7f) {
+                    listener.onBufferPredicted(
+                        response.disconnect_probability
+                    )
 
-            listener.onBufferPredicted(risk)
+                    listener.onBufferStarted()
+                }
 
-            listener.onBufferStarted()
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+            }
         }
     }
 }

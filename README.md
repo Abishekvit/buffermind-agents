@@ -267,7 +267,30 @@ THEN:
 - Buffering Window: 30 minutes simulated
 
 ---
+## Day 6: AI Backend with FastAPI
 
+BufferMind now includes a **separate AI prediction microservice** that runs on a laptop or server:
+
+- `/predict` endpoint accepts a JSON request with:
+    - `walking`,
+    - `weak_signal`,
+    - `repeated_playback`,
+    - `gps_moving`,
+    - `playback_duration_minutes`.
+- The backend returns:
+    - `disconnect_probability` (0.0–1.0),
+    - `confidence`,
+    - `should_buffer`,
+    - `buffer_minutes`,
+    - `reason` (list of contributing factors).
+- Default logic gives **78% disconnect risk** when walking + weak signal + repeated playback.
+
+The Android app sends context to this API and receives a prediction, which triggers **predictive buffering** and notifications.
+
+Future:
+- Replace `fake_lstm.py` with a real LSTM model served via TensorFlow Lite or ONNX.
+- Scale to cloud (Google Cloud Run, AWS Lambda, etc.).
+- 
 ## Current Status
 
 ✅ Multi-sensor context fusion working  
