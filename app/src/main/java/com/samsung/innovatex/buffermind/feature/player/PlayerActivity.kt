@@ -1,12 +1,15 @@
 // File: app/src/main/java/com/samsung/innovatex/buffermind/feature/player/PlayerActivity.kt
 
 package com.samsung.innovatex.buffermind.feature.player
-
+import com.samsung.innovatex.buffermind.util.BufferNotificationManager
 import android.content.Context
 import android.hardware.SensorEvent
 import android.hardware.SensorManager
+import android.widget.Button
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.cancel
 import android.os.Bundle
+
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -37,8 +40,15 @@ class PlayerActivity : AppCompatActivity(), BufferTriggerListener {
     )
 
     private var tvStatus: TextView? = null
-    private var tvSensorStatus: TextView? = null
-    private var tvCacheStats: TextView? = null
+    private lateinit var tvPredictionConfidence: TextView
+    private lateinit var tvPredictionRisk: TextView
+    private lateinit var tvBufferStatus: TextView
+    private lateinit var tvCacheStats: TextView
+    private lateinit var tvSignalStatus: TextView
+    private lateinit var tvSensorStatus: TextView
+    private lateinit var btnSimulateAirplane: Button
+
+    private lateinit var notificationManager: BufferNotificationManager
 
     private var playerView: PlayerView? = null
     private var player: ExoPlayer? = null
@@ -63,9 +73,33 @@ class PlayerActivity : AppCompatActivity(), BufferTriggerListener {
         setContentView(R.layout.activity_main)
 
         playerView = findViewById(R.id.playerView)
-        tvStatus = findViewById(R.id.tvStatus)
-        tvSensorStatus = findViewById(R.id.tvSensorStatus)
-        tvCacheStats = findViewById(R.id.tv_cache_stats)
+        tvPredictionConfidence =
+            findViewById(R.id.tv_prediction_confidence)
+
+        tvPredictionRisk =
+            findViewById(R.id.tv_prediction_risk)
+
+        tvBufferStatus =
+            findViewById(R.id.tv_buffer_status)
+
+        tvCacheStats =
+            findViewById(R.id.tv_cache_stats)
+
+        tvSignalStatus =
+            findViewById(R.id.tv_signal_status)
+
+        tvSensorStatus =
+            findViewById(R.id.tv_sensor_status)
+
+        btnSimulateAirplane =
+            findViewById(R.id.btn_simulate_airplane)
+
+        notificationManager =
+            BufferNotificationManager(this)
+
+        btnSimulateAirplane.setOnClickListener {
+            simulateAirplaneMode()
+        }
 
         setupPlayerAndSession()
         setupSensors()
@@ -146,10 +180,25 @@ class PlayerActivity : AppCompatActivity(), BufferTriggerListener {
 
         fakeCache.preloadSegment("current_track", 30)
 
-        tvStatus?.text =
-            "AI PREDICTED DISCONNECT\n" +
-                    "BUFFERING 30 MIN AHEAD\n" +
-                    "Risk: ${String.format("%.1f", risk)}"
+        val conf =
+            "${String.format("%.0f", risk * 100)}%"
+
+        val prob =
+            "${String.format("%.0f", risk * 100)}%"
+
+        tvPredictionConfidence.text =
+            "Confidence: $conf"
+
+        tvPredictionRisk.text =
+            "Risk: $prob"
+
+        tvBufferStatus.text =
+            "Buffering 30min ahead!"
+
+        notificationManager.showBasicNotification(
+            title = "BufferMind Agent",
+            text = "AI predicted disconnect – 30min ahead!"
+        )
 
         Toast.makeText(
             this,
@@ -160,13 +209,13 @@ class PlayerActivity : AppCompatActivity(), BufferTriggerListener {
 
     override fun onBufferStarted() {
 
-        tvStatus?.text =
+        tvBufferStatus.text =
             "Adaptive memory optimization active"
     }
 
     override fun onSeamlessPlayback() {
 
-        tvStatus?.text =
+        tvBufferStatus.text =
             "SEAMLESS PLAYBACK ACTIVE (offline)"
     }
 

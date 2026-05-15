@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    android:textAppearance="?attr/textAppearanceBodyMedium"
+    android:elevation="4dp"
     <style name="Theme.BufferMind" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

@@ -18,7 +18,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <!-- Service declaration -->
-    <service android:name=".service.BufferMindService"
+    <service
+        android:name=".service.BufferMindService"
         android:foregroundServiceType="mediaPlayback" />
     <application
         android:name=".BufferMindApplication"

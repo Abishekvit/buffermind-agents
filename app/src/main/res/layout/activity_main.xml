@@ -1,38 +1,202 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/tvStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Player Status"
-
-        />
-    <TextView
-        android:id="@+id/tv_cache_stats"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Cache: 0 tracks, Hit rate: 0%"
-        android:textSize="12sp"
-        android:textColor="@color/black"
-        />
-    <TextView
-        android:id="@+id/tvSensorStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Sensor Status" />
-
+    <!-- Player View (top) -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/playerView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="16dp" />
+        android:layout_width="0dp"
+        android:layout_height="240dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-</LinearLayout>
+    <!-- AI Prediction Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_prediction"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:cardBackgroundColor="#1E3A8A"
+        app:cardCornerRadius="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/playerView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tv_prediction_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="AI Prediction"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/tv_prediction_confidence"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Confidence: —%"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="4dp"/>
+
+            <TextView
+                android:id="@+id/tv_prediction_risk"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Risk: —%"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="4dp"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Buffering / Memory Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_buffering"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:cardBackgroundColor="#155E75"
+        app:cardCornerRadius="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/card_prediction"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tv_buffer_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Predictive Buffering"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/tv_buffer_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Status: —"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="4dp"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Adaptive Memory Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_cache"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:cardBackgroundColor="#7C2D12"
+        app:layout_constraintTop_toBottomOf="@+id/card_buffering"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Adaptive Memory"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/tv_cache_stats"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Cache: 0 tracks, 0% hit rate"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="4dp"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Signal + Sensor Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_signal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:cardBackgroundColor="#052E16"
+        app:cardCornerRadius="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/card_cache"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Sensor &amp; Signal"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/tv_signal_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Signal: —, Moving: —"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="4dp"/>
+
+            <TextView
+                android:id="@+id/tv_sensor_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Context Risk: 0.0"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="4dp"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Control buttons (optional, demo) -->
+    <Button
+        android:id="@+id/btn_simulate_airplane"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Simulate Airplane Mode"
+        app:layout_constraintTop_toBottomOf="@+id/card_signal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
