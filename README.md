@@ -290,6 +290,8 @@ The Android app sends context to this API and receives a prediction, which trigg
 Future:
 - Replace `fake_lstm.py` with a real LSTM model served via TensorFlow Lite or ONNX.
 - Scale to cloud (Google Cloud Run, AWS Lambda, etc.).
+![img.png](img.png)
+- ![img_1.png](img_1.png)
 - 
 ## Current Status
 
