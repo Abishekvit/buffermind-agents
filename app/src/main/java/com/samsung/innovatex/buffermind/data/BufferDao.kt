@@ -11,8 +11,12 @@ interface BufferDao {
     @Query("SELECT * FROM buffered_tracks ORDER BY lastUsedAtMs DESC")
     fun getAll(): Flow<List<BufferedTrackEntity>>
 
-    @Query("SELECT * FROM buffered_tracks WHERE trackId = :trackId LIMIT 1")
-    suspend fun getByTrackId(trackId: String): BufferedTrackEntity?
+    @Query(
+        "SELECT * FROM buffered_tracks WHERE trackId = :trackId LIMIT 1"
+    )
+    fun getByTrackId(
+        trackId: String
+    ): Flow<BufferedTrackEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(track: BufferedTrackEntity)

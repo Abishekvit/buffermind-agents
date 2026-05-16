@@ -3,13 +3,14 @@
 package com.samsung.innovatex.buffermind.feature.player
 import com.samsung.innovatex.buffermind.util.BufferNotificationManager
 import android.content.Context
+import com.samsung.innovatex.buffermind.memory.*
+import com.samsung.innovatex.buffermind.domain.AdaptiveMemoryManager
 import android.hardware.SensorEvent
 import android.hardware.SensorManager
 import android.widget.Button
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.cancel
 import android.os.Bundle
-
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -26,7 +27,10 @@ import com.samsung.innovatex.buffermind.util.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import java.time.Instant
+import java.util.UUID
 class PlayerActivity : AppCompatActivity(), BufferTriggerListener {
 
     private val database: BufferDatabase by lazy {
@@ -175,9 +179,21 @@ class PlayerActivity : AppCompatActivity(), BufferTriggerListener {
         predictiveEngine.processContext(fusedContext)
         updateContextUI(fusedContext)
     }
+    override fun onPredictiveBufferNeeded(
+        disconnectProbability: Float,
+        confidence: Float,
+        bufferMinutes: Int,
+    ) {
+        tvPredictionConfidence.text =
+            "Confidence: ${(confidence * 100).toInt()}%"
 
+        tvPredictionRisk.text =
+            "Risk: ${(disconnectProbability * 100).toInt()}%"
+        tvBufferStatus.text =
+            "Buffering ${bufferMinutes}min ahead!"
+    }
     override fun onBufferPredicted(risk: Float) {
-
+        val memoryManager = MemoryManager()
         fakeCache.preloadSegment("current_track", 30)
 
         val conf =
@@ -199,7 +215,41 @@ class PlayerActivity : AppCompatActivity(), BufferTriggerListener {
             title = "BufferMind Agent",
             text = "AI predicted disconnect – 30min ahead!"
         )
+        lifecycleScope.launch {
 
+            val memory = EpisodeMemory(
+
+                episodeId =
+                    UUID.randomUUID().toString(),
+
+                playbackContext =
+                    "Walking + weak signal + repeated playback",
+
+                disconnectProbability = risk,
+
+                signalQuality = "Weak",
+
+                walkingState = true,
+
+                gpsMoving = gpsMoving,
+
+                playbackDuration = 15f,
+
+                trackTitle = "Music Track",
+
+                cacheHit = true,
+
+                bufferingSuccess = true,
+
+                userBehaviorPattern =
+                    "commute-repeat",
+
+                timestamp =
+                    System.currentTimeMillis().toString(),
+            )
+
+            memoryManager.storeEpisode(memory)
+        }
         Toast.makeText(
             this,
             "Predictive buffering activated",

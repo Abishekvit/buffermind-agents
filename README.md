@@ -322,6 +322,45 @@ BufferMind now uses a **real LSTM model** trained on synthetic sensor data:
 - Predictions are smoothed to avoid flickering.
 
 The Android app now uses a **real AI model** instead of fake scoring rules, making the demo a true **AI‑powered context‑aware adaptive memory system**.
+## Day 9: RL Cache Optimization Agent
+
+BufferMind now includes a **Reinforcement Learning cache optimization** system:
+
+- **State**: signal strength, walking, playback repetition, GPS movement, playback duration, cache occupancy, cache hit rate, latency, predicted disconnect probability, track popularity, time of day, remaining buffered seconds.
+- **Actions**: keep in cache, evict, prefetch next track, expand buffer, reduce buffer.
+- **Rewards**:
+    - + cache hit,
+    - + playback continuity,
+    - + latency reduction,
+    - - cache miss,
+    - - playback interruption,
+    - - memory overuse.
+
+An RL agent chooses the best action and updates a lightweight value table using replay‑buffer‑style learning.
+
+This RL‑based cache policy makes BufferMind **context‑aware, adaptive, and memory‑efficient**, and demo‑ready.
+
+## Day 10: Agentic Long‑Term Memory with ChromaDB
+
+BufferMind now includes an **agentic long‑term memory system**:
+
+- **Episode memory** records:
+    - playback context,
+    - signal strength,
+    - walking/GPS,
+    - cache hit,
+    - buffering success.
+- Episodes are stored into **ChromaDB** using semantic embeddings.
+- Android can query:
+    - “Similar playback contexts”
+    - “Which tracks were buffered successfully in weak‑signal commuting?”
+
+The RL cache agent uses retrieved episodes to:
+- decide stronger or lighter prefetch,
+- adjust buffer size,
+- avoid past failures.
+
+This is a **semantic memory‑augmented agent** inspired by RAG, ready for future online learning and personalization.
 # 🎬 Demo Flow
 
 1. Start audio playback
