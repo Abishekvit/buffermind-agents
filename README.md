@@ -305,7 +305,23 @@ Future:
 ✅ Day 3 prototype demo-ready
 
 ---
+## Day 8: Real LSTM Model + TF Lite Deployment
 
+BufferMind now uses a **real LSTM model** trained on synthetic sensor data:
+
+- Dataset includes:
+    - walking,
+    - weak signal,
+    - repeated playback,
+    - GPS movement,
+    - time of day,
+    - movement speed.
+- An LSTM model trained with TensorFlow reaches >90% accuracy on binary disconnect prediction.
+- The model is converted to TF Lite and deployed on Android.
+- `BufferMindTfLite` loads the model from assets and runs real‑time inference.
+- Predictions are smoothed to avoid flickering.
+
+The Android app now uses a **real AI model** instead of fake scoring rules, making the demo a true **AI‑powered context‑aware adaptive memory system**.
 # 🎬 Demo Flow
 
 1. Start audio playback

@@ -69,4 +69,6 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
+//TERNSORFLOW
+    implementation ("org.tensorflow:tensorflow-lite:2.14.0")
 }
